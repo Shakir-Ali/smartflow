@@ -11,7 +11,9 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final String SECRET = "smartflow-secret-key-smartflow-secret-key";
+    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+
     private final long EXPIRATION_TIME = 1000 * 60 * 60;
 
     public String generateToken(String email, String role) {
