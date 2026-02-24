@@ -51,7 +51,7 @@ public class AuthService {
             throw new RuntimeException("Invalid Credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getTenantId().toString());
 
         return ApiResponse.<String>builder()
                 .success(true)
