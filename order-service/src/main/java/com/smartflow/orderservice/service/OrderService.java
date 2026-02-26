@@ -34,7 +34,6 @@ public class OrderService {
                 .tenantId(tenantId)
                 .productName(request.getProductName())
                 .amount(request.getAmount())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         Order saved = orderRepository.save(order);
