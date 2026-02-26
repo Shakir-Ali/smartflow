@@ -1,8 +1,10 @@
 package com.smartflow.orderservice.controller;
 
 import com.smartflow.orderservice.dto.CreateOrderRequest;
+import com.smartflow.orderservice.dto.OrderResponse;
 import com.smartflow.orderservice.entity.Order;
 import com.smartflow.orderservice.service.OrderService;
+import com.smartflow.orderservice.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +19,20 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public List<Order> getOrders() {
-        return orderService.getOrders();
+    public ApiResponse<List<OrderResponse>> getOrders() {
+        return ApiResponse.<List<OrderResponse>>builder()
+                .success(true)
+                .message("Order fetched Successfully")
+                .data(orderService.getOrders())
+                .build();
     }
 
     @PostMapping
-    public Order createOrder(@Valid @RequestBody CreateOrderRequest request) {
-        return orderService.createOrder(request);
+    public ApiResponse<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        return ApiResponse.<OrderResponse>builder()
+                .success(true)
+                .message("Order Created Successfully")
+                .data(orderService.createOrder(request))
+                .build();
     }
 }
