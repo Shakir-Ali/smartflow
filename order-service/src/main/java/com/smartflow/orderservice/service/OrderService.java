@@ -5,7 +5,6 @@ import com.smartflow.orderservice.dto.OrderResponse;
 import com.smartflow.orderservice.entity.Order;
 import com.smartflow.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +56,7 @@ public class OrderService {
                         .build());
     }
 
-    private static @NonNull UUID getTenantId() {
+    private static UUID getTenantId() {
         String tenantIdStr = (String) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
