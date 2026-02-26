@@ -41,4 +41,15 @@ public class OrderController {
                 .data(orderService.createOrder(request))
                 .build();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ApiResponse<String> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ApiResponse.<String>builder()
+                .success(true)
+                .message("Order Deleted Successfully")
+                .data(null)
+                .build();
+    }
 }

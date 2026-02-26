@@ -2,6 +2,8 @@ package com.smartflow.orderservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -14,6 +16,8 @@ import java.util.UUID;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "Orders")
+@SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,6 +37,9 @@ public class Order {
 
     @Column(nullable = false)
     private Double amount;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

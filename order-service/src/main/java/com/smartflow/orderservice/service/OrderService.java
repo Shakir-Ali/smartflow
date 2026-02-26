@@ -65,4 +65,10 @@ public class OrderService {
                         .createdAt(order.getCreatedAt())
                         .build());
     }
+
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order Not Found"));
+
+        orderRepository.delete(order);
+    }
 }
