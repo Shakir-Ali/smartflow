@@ -5,6 +5,7 @@ import com.smartflow.orderservice.dto.OrderResponse;
 import com.smartflow.orderservice.entity.Order;
 import com.smartflow.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,12 +24,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     public OrderResponse createOrder(CreateOrderRequest request) {
-        String tenantIdStr = (String) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getCredentials();
-
-        UUID tenantId = UUID.fromString(tenantIdStr);
+        UUID tenantId = getTenantId();
 
         Order order = Order.builder()
                 .tenantId(tenantId)
@@ -47,12 +43,7 @@ public class OrderService {
     }
 
     public Page<OrderResponse> getOrders(int page, int size) {
-        String tenantIdStr = (String) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getCredentials();
-
-        UUID tenantId = UUID.fromString(tenantIdStr);
+        UUID tenantId = getTenantId();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("CreatedAt").descending());
 
@@ -66,8 +57,21 @@ public class OrderService {
                         .build());
     }
 
+    private static @NonNull UUID getTenantId() {
+        String tenantIdStr = (String) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getCredentials();
+
+        UUID tenantId = UUID.fromString(tenantIdStr);
+        return tenantId;
+    }
+
     public void deleteOrder(Long id) {
-        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order Not Found"));
+
+        UUID tenantId = getTenantId();
+
+        Order order = orderRepository.findByIdAndTenantId(id, tenantId).orElseThrow(() -> new RuntimeException("Order Not Found"));
 
         orderRepository.delete(order);
     }

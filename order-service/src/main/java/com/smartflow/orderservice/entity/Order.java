@@ -15,7 +15,12 @@ import java.util.UUID;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "Orders")
+@Table(
+        name = "Orders",
+        indexes = {
+                @Index(name = "idx_orders_tenant_id", columnList = "tenant_id"),
+                @Index(name = "idx_orders_created_at", columnList = "created_at")
+        })
 @SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
 @SQLRestriction("deleted = false")
 @Getter
