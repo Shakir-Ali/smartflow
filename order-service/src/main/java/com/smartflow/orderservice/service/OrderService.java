@@ -5,6 +5,10 @@ import com.smartflow.orderservice.dto.OrderResponse;
 import com.smartflow.orderservice.entity.Order;
 import com.smartflow.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +47,7 @@ public class OrderService {
                 .build();
     }
 
-    public List<OrderResponse> getOrders() {
+    public Page<OrderResponse> getOrders(int page, int size) {
         String tenantIdStr = (String) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -51,14 +55,15 @@ public class OrderService {
 
         UUID tenantId = UUID.fromString(tenantIdStr);
 
-        return orderRepository.findByTenantId(tenantId)
-                .stream()
-                .map(order -> OrderResponse.builder()
+        Pageable pageable = PageRequest.of(page, size, Sort.by("CreatedAt").descending());
+
+        Page<Order> orderPage = orderRepository.findByTenantId(tenantId, pageable);
+
+        return orderPage.map(order -> OrderResponse.builder()
                         .id(order.getId())
                         .productName(order.getProductName())
                         .amount(order.getAmount())
                         .createdAt(order.getCreatedAt())
-                        .build())
-                .toList();
+                        .build());
     }
 }

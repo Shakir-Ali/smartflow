@@ -7,6 +7,7 @@ import com.smartflow.orderservice.service.OrderService;
 import com.smartflow.orderservice.util.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +21,14 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public ApiResponse<List<OrderResponse>> getOrders() {
-        return ApiResponse.<List<OrderResponse>>builder()
+    public ApiResponse<Page<OrderResponse>> getOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return ApiResponse.<Page<OrderResponse>>builder()
                 .success(true)
                 .message("Order fetched Successfully")
-                .data(orderService.getOrders())
+                .data(orderService.getOrders(page, size))
                 .build();
     }
 
