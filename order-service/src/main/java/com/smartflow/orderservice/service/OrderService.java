@@ -3,6 +3,8 @@ package com.smartflow.orderservice.service;
 import com.smartflow.orderservice.dto.CreateOrderRequest;
 import com.smartflow.orderservice.dto.OrderResponse;
 import com.smartflow.orderservice.entity.Order;
+import com.smartflow.orderservice.event.OrderCreatedEvent;
+import com.smartflow.orderservice.kafka.OrderEventProducer;
 import com.smartflow.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
 
     public OrderResponse createOrder(CreateOrderRequest request) {
         UUID tenantId = getTenantId();
@@ -32,6 +35,18 @@ public class OrderService {
                 .build();
 
         Order saved = orderRepository.save(order);
+
+        // Calling the Kafka Event
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                saved.getId(),
+                saved.getTenantId(),
+                saved.getProductName(),
+                saved.getAmount(),
+                saved.getCreatedBy(),
+                saved.getCreatedAt()
+        );
+
+        orderEventProducer.sendOrderCreatedEvent(event);
 
         return OrderResponse.builder()
                 .id(saved.getId())
