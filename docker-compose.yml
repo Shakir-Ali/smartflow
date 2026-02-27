@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
 
@@ -21,5 +20,85 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  order-db:
+    image: postgres:16
+    container_name: smartflow-order-db
+    environment:
+      POSTGRES_DB: smartflow_order
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres1234
+    ports:
+      - "5433:5432"
+
+  order-service:
+    image: smartflow-order-service
+    container_name: smartflow-order-service
+    depends_on:
+      - kafka
+      - order-db
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/smartflow_order
+      PRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres1234
+    volumes:
+      - order-data:/var/lib/postgresql/data
+
+  auth-db:
+    image: postgres:16
+    container_name: smartflow-auth-db
+    environment:
+      POSTGRES_DB: smartflow_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres1234
+    ports:
+      - "5434:5432"
+
+  auth-service:
+    image: smartflow-auth-service
+    container_name: smartflow-auth-service
+    depends_on:
+      - auth-db
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/smartflow_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres1234
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+
+  notification-service:
+    image: smartflow-notification-service
+    container_name: smartflow-notification-service
+    depends_on:
+      - kafka
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_USE_TYPE_HEADERS: "false"
+      SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_VALUE_DEFAULT_TYPE: com.smartflow.notificationservice.event.OrderCreatedEvent
+
+  gateway-service:
+    image: smartflow-gateway-service
+    container_name: smartflow-gateway-service
+    depends_on:
+      - auth-service
+      - order-service
+    ports:
+      - "8080:8080"
+
+volumes:
+  order-data:
+  auth-data:
